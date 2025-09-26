@@ -19,4 +19,10 @@ Python -m venv venv
 python3 -m venv venv
 ```
 
-## Instalar as dependencias
+## Instalar as dependências
+```bash
+pip install -r requirements.txt
+```
+
+## Rodar o código
+Agora basta rodar o código main.py
