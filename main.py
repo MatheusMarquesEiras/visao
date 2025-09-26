@@ -1,46 +1,36 @@
 import cv2
 import numpy as np
+from pathlib import Path
+import matplotlib.pyplot as plt
 
-def segmentar_kmeans(caminho_imagem, k=3, nome_saida="imagem_segmentada.jpg"):
-    """
-    Segmenta uma imagem usando K-means baseado em cores e salva o resultado.
-
-    Parâmetros:
-        caminho_imagem (str): Caminho da imagem a ser segmentada.
-        k (int): Número de clusters/grupos.
-        nome_saida (str): Nome do arquivo de saída.
-    """
-    # 1. Carregar imagem
-    imagem = cv2.imread(caminho_imagem)
+def segmentar_kmeans(caminho_imagem="input.jpg", k=4, nome_saida="output.jpg"):
+    imagem = cv2.imread(str(caminho_imagem))
     if imagem is None:
         raise FileNotFoundError(f"Não foi possível abrir a imagem: {caminho_imagem}")
 
-    # 2. Converter para RGB (opcional)
     imagem_rgb = cv2.cvtColor(imagem, cv2.COLOR_BGR2RGB)
-
-    # 3. Transformar em array de pixels
-    pixel_values = imagem_rgb.reshape((-1, 3))
-    pixel_values = np.float32(pixel_values)
-
-    # 4. Definir critérios de parada
+    pixel_values = np.float32(imagem_rgb.reshape((-1, 3)))
     criterios = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-
-    # 5. Aplicar K-means
     _, labels, centros = cv2.kmeans(pixel_values, k, None, criterios, 10, cv2.KMEANS_RANDOM_CENTERS)
-
-    # 6. Reconstruir imagem segmentada
     centros = np.uint8(centros)
-    imagem_segmentada = centros[labels.flatten()]
-    imagem_segmentada = imagem_segmentada.reshape(imagem_rgb.shape)
+    imagem_segmentada = centros[labels.flatten()].reshape(imagem_rgb.shape)
 
-    # 7. Converter de volta para BGR antes de salvar
     imagem_segmentada_bgr = cv2.cvtColor(imagem_segmentada, cv2.COLOR_RGB2BGR)
-
-    # 8. Salvar resultado
     cv2.imwrite(nome_saida, imagem_segmentada_bgr)
-    print(f"Imagem segmentada salva como: {nome_saida}")
 
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+    axs[0].imshow(imagem_rgb)
+    axs[0].set_title("Imagem Original")
+    axs[0].axis("off")
+    axs[1].imshow(imagem_segmentada)
+    axs[1].set_title(f"Segmentação K-means (k={k})")
+    axs[1].axis("off")
+    plt.tight_layout()
+    plt.show()
 
-# Exemplo de uso
 if __name__ == "__main__":
-    segmentar_kmeans("rune.jpg", k=4, nome_saida="rune1.jpg")
+    caminho_input = input("Digite o caminho da imagem (Enter para usar 'input.jpg'): ")
+    caminho = Path(caminho_input) if caminho_input else Path("input.jpg")
+    k_input = input("Digite o número de clusters K (Enter para usar 4): ")
+    k = int(k_input) if k_input else 4
+    segmentar_kmeans(caminho_imagem=caminho, k=k)
